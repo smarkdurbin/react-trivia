@@ -1,0 +1,9 @@
+Components
+  Game
+  Question
+  Modal
+  Settings
+API
+  getQuestion(category, difficulty)
+  getCategories()
+  createSessionToken()
