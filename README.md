@@ -2,7 +2,7 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-It is currently hosted on Amazon S3 [here](), using AWS Amplify for CI/CD.
+It is currently hosted on Amazon S3 [here](https://main.d919upl6a002l.amplifyapp.com/), using AWS Amplify for CI/CD.
 
 ## Available Scripts
 

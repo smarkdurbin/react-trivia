@@ -21,7 +21,7 @@ const Header = ({ answerTimer, questionTimeLimit, timeToAnswer }) => {
             </Box>
             <Box alignSelf="center" width="20%"></Box>
             <Box alignSelf="center" textAlign="right" width="40%">
-              <Text as="strong" color="white" fontSize="lg" ml="auto" mr="auto">
+              <Text as="strong" color="white" fontSize="md" ml="auto" mr="auto">
                 {timeToAnswer >= 0
                   ? `:${String(Math.floor(timeToAnswer / 100)).padStart(
                       2,
