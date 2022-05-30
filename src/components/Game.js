@@ -1,168 +1,202 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { testQuestions } from "../api/test_data";
+import { Container } from "@chakra-ui/react";
+import { useCallback, useEffect, useState } from "react";
+import { getQuestions } from "../api/api";
 import { intervalTimer } from "../helpers/helpers";
+import CurrentQuestion from "./CurrentQuestion";
 import Header from "./Header";
-import HowToPlay from "./HowToPlay";
-import Main from "./Main";
-import Modal from "./Modal";
-import Question from "./Question";
-import QuestionResult from "./QuestionResult";
+import Results from "./Results";
 import Start from "./Start";
 
 const Game = () => {
+  // Questions per round.
+  const questionsPerRound = 20;
+
+  // Question time limit (milliseconds).
+  const questionTimeLimit = 30000;
+
   // State.
   const [answerTimer, setAnswerTimer] = useState();
-  const [currentQuestion, setCurrentQuestion] = useState({});
-  const [gameStarted, setGameStarted] = useState(false);
-  const [modalContent, setModalContent] = useState();
-  const [questions, setQuestions] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState();
+  const [currentQuestionResult, setCurrentQuestionResult] = useState();
+  const [ended, setEnded] = useState();
+  const [incorrectAnswers, setIncorrectAnswers] = useState(0);
+  const [isLastQuestion, setIsLastQuestion] = useState();
+  const [questionCount, setQuestionCount] = useState(0);
+  const [started, setStarted] = useState(false);
   const [timeToAnswer, setTimeToAnswer] = useState();
 
-  // Answer question.
-  const answerQuestion = (answer) => {
-    // Define result.
-    let result = "INCORRECT";
-
+  // Answer current question.
+  const answerCurrentQuestion = (answer) => {
     // If answer EQ current question correct answer.
     if (answer === currentQuestion.correct_answer) {
-      // Define result.
-      result = "CORRECT";
+      // Set current question result.
+      setCurrentQuestionResult("CORRECT");
+    } else {
+      // Set current question result.
+      setCurrentQuestionResult("INCORRECT");
     }
 
-    // Set current question.
-    setCurrentQuestion((prevState) => ({
-      ...prevState,
-      result,
-    }));
+    // End timer.
+    endTimer();
   };
 
-  // Close modal.
-  const closeModal = () => {
-    // Set show modal.
-    setShowModal(false);
+  // End game.
+  const endGame = () => {
+    // End timer.
+    endTimer();
+
+    // Set answer timer.
+    setAnswerTimer();
+
+    // Set question count.
+    setQuestionCount(0);
+
+    // Set ended.
+    setEnded(true);
   };
 
   // End timer.
-  // const endTimer = () => {};
-
   const endTimer = useCallback(() => {
     // Clear interval.
     clearInterval(answerTimer);
+
+    // Set time to answer.
+    setTimeToAnswer();
   }, [answerTimer]);
 
-  // Load next question.
-  const loadNextQuestion = useCallback(() => {
-    // Next question.
-    const nextQuestion = questions.pop();
+  // Load question.
+  const loadNextQuestion = async () => {
+    // Get question.
+    await getQuestions(1).then((questions) => {
+      // Set current question.
+      setCurrentQuestion(questions[0]);
 
-    // Close modal.
-    closeModal();
+      // Set current question result.
+      setCurrentQuestionResult();
 
-    // Set current question.
-    setCurrentQuestion(nextQuestion);
+      // Set question count.
+      setQuestionCount(questionCount + 1);
 
-    // Start timer.
-    startTimer();
-  }, [questions]);
+      // End timer.
+      endTimer();
 
-  // Open modal.
-  const openModal = () => {
-    // Set show modal.
-    setShowModal(true);
+      // Start timer.
+      startTimer();
+    });
   };
 
-  // Show how to play.
-  const showHowToPlay = () => {
-    // Set modal content.
-    setModalContent(<HowToPlay />);
-
-    // Open modal.
-    openModal();
+  // Show results.
+  const showResults = () => {
+    // End game.
+    endGame();
   };
 
-  // Show question result.
-  const showQuestionResult = useCallback(
-    (result) => {
-      // Set modal content.
-      setModalContent(
-        <QuestionResult loadNextQuestion={loadNextQuestion} result={result} />
-      );
+  // Start game.
+  const start = async () => {
+    // Set question count.
+    setQuestionCount(0);
 
-      // Open modal.
-      openModal();
-    },
-    [loadNextQuestion]
-  );
-
-  // Start the game.
-  const startGame = () => {
-    // Set game started.
-    setGameStarted(true);
+    // Set is last question.
+    setIsLastQuestion(false);
 
     // Load next question.
-    loadNextQuestion();
+    await loadNextQuestion();
+
+    // Set correct answers.
+    setCorrectAnswers(0);
+
+    // Set incorrect answers.
+    setIncorrectAnswers(0);
+
+    // Set game ended.
+    setEnded(false);
+
+    // Set game started.
+    setStarted(true);
   };
 
   // Start timer.
   const startTimer = () => {
     // Create new interval timer.
-    const newIntervalTimer = intervalTimer(30, 1, (i) => setTimeToAnswer(i));
+    const newIntervalTimer = intervalTimer(questionTimeLimit, 10, (i) =>
+      setTimeToAnswer(i)
+    );
 
     // Set answer timer.
     setAnswerTimer(newIntervalTimer);
   };
 
-  // Hook on component mount.
+  // Hook on current question result.
   useEffect(() => {
-    // Set questions.
-    setQuestions(testQuestions);
-  }, []);
-
-  // Hook on current question.
-  useEffect(() => {
-    // If current question result.
-    if ("result" in currentQuestion) {
-      // Show question result.
-      showQuestionResult(currentQuestion.result);
-
-      // End timer.
-      endTimer();
+    // Switch on current question result.
+    switch (currentQuestionResult) {
+      case "CORRECT":
+        // Set correct answers.
+        setCorrectAnswers(correctAnswers + 1);
+        break;
+      case "EXPIRED":
+        // Set incorrect answers.
+        setIncorrectAnswers(incorrectAnswers + 1);
+        break;
+      case "INCORRECT":
+        // Set incorrect answers.
+        setIncorrectAnswers(incorrectAnswers + 1);
+        break;
+      default:
+        break;
     }
-  }, [currentQuestion, endTimer, showQuestionResult]);
+  }, [currentQuestionResult]);
+
+  // Hook on question count.
+  useEffect(() => {
+    // If question count GEQ questions per round.
+    if (questionCount >= questionsPerRound) {
+      // Set is last question.
+      setIsLastQuestion(true);
+    }
+  }, [questionCount]);
 
   // Hook on time to answer.
   useEffect(() => {
     // If time expired.
     if (timeToAnswer === 0) {
-      // Set current question.
-      setCurrentQuestion((prevState) => ({
-        ...prevState,
-        result: "EXPIRED",
-      }));
+      // Set current question result.
+      setCurrentQuestionResult("EXPIRED");
+
+      // Set questions wrong.
+      setIncorrectAnswers(incorrectAnswers + 1);
     }
   }, [timeToAnswer]);
 
   return (
     <div className="Game">
-      <Modal content={modalContent} closeModal={closeModal} show={showModal} />
-      <Header timeToAnswer={timeToAnswer} />
-      <Main>
-        {gameStarted ? (
-          <Question
-            {...currentQuestion}
-            startTime={startTimer}
-            timeToAnswer={timeToAnswer}
-            answerQuestion={answerQuestion}
-          />
-        ) : (
-          <Start
-            openModal={openModal}
-            showHowToPlay={showHowToPlay}
-            startGame={startGame}
+      <Header
+        answerTimer={answerTimer}
+        questionTimeLimit={questionTimeLimit}
+        timeToAnswer={timeToAnswer}
+      />
+      <Container maxWidth="lg" py="8">
+        {ended && (
+          <Results
+            correctAnswers={correctAnswers}
+            incorrectAnswers={incorrectAnswers}
+            startGame={start}
           />
         )}
-      </Main>
+        {!started && <Start start={start} />}
+        {started && currentQuestion && !ended && (
+          <CurrentQuestion
+            {...currentQuestion}
+            answer={answerCurrentQuestion}
+            gameEnded={ended}
+            isLast={isLastQuestion}
+            loadNext={loadNextQuestion}
+            result={currentQuestionResult}
+            showResults={showResults}
+          />
+        )}
+      </Container>
     </div>
   );
 };

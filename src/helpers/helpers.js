@@ -1,8 +1,8 @@
 /**
  * Interval timer.
  *
- * @param {number} duration (seconds)
- * @param {number} interval (seconds)
+ * @param {number} duration (milliseconds)
+ * @param {number} interval (milliseconds)
  * @param {function} intervalCb
  * @param {function} completeCb
  */
@@ -13,7 +13,7 @@ export const intervalTimer = (
   completeCb = (i) => {}
 ) => {
   // Define count.
-  let count = duration;
+  let count = duration / interval;
 
   // Execute interval callback.
   intervalCb(count);
@@ -37,7 +37,7 @@ export const intervalTimer = (
   };
 
   // Define counter.
-  const counter = setInterval(timer, interval * 1000);
+  const counter = setInterval(timer, interval);
 
   // Return this so it can be cancelled later.
   return counter;
