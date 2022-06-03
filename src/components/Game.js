@@ -133,15 +133,15 @@ const Game = () => {
     switch (currentQuestionResult) {
       case "CORRECT":
         // Set correct answers.
-        setCorrectAnswers(correctAnswers + 1);
+        setCorrectAnswers((i) => i + 1);
         break;
       case "EXPIRED":
         // Set incorrect answers.
-        setIncorrectAnswers(incorrectAnswers + 1);
+        setIncorrectAnswers((i) => i + 1);
         break;
       case "INCORRECT":
         // Set incorrect answers.
-        setIncorrectAnswers(incorrectAnswers + 1);
+        setIncorrectAnswers((i) => i + 1);
         break;
       default:
         break;
@@ -165,7 +165,7 @@ const Game = () => {
       setCurrentQuestionResult("EXPIRED");
 
       // Set questions wrong.
-      setIncorrectAnswers(incorrectAnswers + 1);
+      setIncorrectAnswers((i) => i + 1);
     }
   }, [timeToAnswer]);
 
