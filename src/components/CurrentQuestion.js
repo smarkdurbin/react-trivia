@@ -5,7 +5,6 @@ import {
   Button,
   Heading,
   HStack,
-  Text,
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
@@ -176,14 +175,6 @@ const ResultsButton = ({ action }) => {
   return (
     <Button colorScheme="teal" onClick={action} width="100%">
       Results
-    </Button>
-  );
-};
-
-const SkipButton = ({ action }) => {
-  return (
-    <Button colorScheme="gray" onClick={action}>
-      Skip
     </Button>
   );
 };
